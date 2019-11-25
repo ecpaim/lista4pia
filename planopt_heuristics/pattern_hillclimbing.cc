@@ -68,7 +68,7 @@ bool HillClimber::fits_size_bound(const std::vector<Pattern> &collection) const
     if (total > size_bound) // se passou do bound retorna falso
       return false;
   }
-
+    cout<<"FIIIIIIIIIIIIIIITS"<<endl;
   return true;
 }
 
@@ -95,6 +95,9 @@ vector<Pattern> HillClimber::compute_initial_collection()
     p.push_back(v);
     collection.push_back(p);
   }
+  cout<<task.goal_state<<endl;
+  cout<<collection<<endl;
+  cout<<"COMPUTEINITIAALLLLLL"<<endl;
 
   return collection;
 }
@@ -115,29 +118,31 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
   // exercício (f)
 
   // pra cada P na coleção C:
-  for(auto p: collection){
+  for(const auto p: collection){
     // computa o conjunto de variaveis casualmente relevantes pra qualquer variavel no patter n
     set<int> causally_relevant;
-    for(auto v:p){ // causally_relevant tem todas variaveis q sao casualmente relevantes pra qualquer variavel no patter
+    for(const auto v:p){ // causally_relevant tem todas variaveis q sao casualmente relevantes pra qualquer variavel no pattern
       for( auto x : causally_relevant_variables[v] ) {
         causally_relevant.insert(x);
       }
     }
-    for(auto v : p){ // tira do set todas as variáveis que já ocorrem em p
+
+    for(const auto v : p){ // tira do set todas as variáveis que já ocorrem em p
       if(causally_relevant.find(v) != causally_relevant.end()){
         causally_relevant.erase(v);
       }
     }
-
-    // com as variaveis que sobrou faz uma collection e poem nos vizinhos
-    vector<Pattern> clinha = collection; // coleção clinha é C
-    for(auto v : causally_relevant){
-      p.push_back(v); // P união com V
+    // pra cada variavel v no conjunto resultante
+    for(const auto v: causally_relevant){
+      vector<Pattern> clinha = collection;
+      clinha.push_back(p);
+      Pattern conj_v;
+      conj_v.push_back(v);
+      clinha.push_back(conj_v);
+      neighbors.push_back(clinha);
     }
-    clinha.push_back(p); // união com C
-    neighbors.push_back(clinha); // adiciona aos vizinhos
   }
-
+  cout<<"NEIGHBOOOOOOOORSSS"<<endl;
   return neighbors;
 }
 
@@ -173,8 +178,36 @@ vector<Pattern> HillClimber::run()
       modify current_collection.
     */
 
-  // TODO: add your code for exercise (f) here.
-  cout<<"AAAAAA"<<endl;
-  return current_collection;
+  // exercício (f)
+  vector<Pattern> current = current_collection;
+  while(true){
+    auto neighbors = compute_neighbors(current);
+    int next_current = -1;
+    
+    vector<Pattern> next_current_c; // o vizinho com maior improvment
+    vector<int> next_current_h; // o valor da heuristica pro vizinho
+    
+    for(const auto n : neighbors){ // pra cada vizinho
+      vector<int> neighbor_h = compute_sample_heuristics(n); // calcula a heuristica dele 
+      int imp = 0;  // improvement é zero no inicio
+      for(unsigned int i=0; i<neighbor_h.size(); i++){
+        if(neighbor_h[i] > current_sample_values[i]){
+          imp ++;
+        } // conta em quantos estados melhorou
+      }
+      if(imp > next_current){ // se melhorou mais que o mais alto encontrado (começa em -1)
+        next_current_c = n; // é o proximo corrente
+        next_current_h = neighbor_h; // salva a heuristica pra ser o sample
+        next_current = imp; // atualiza o maior vizinho
+      }
+    }
+    if(next_current == -1){ // se não encontrou um vizinho melhor o melhor é o atual
+      return current;
+    }else{
+      cout<<"AAIUDHIUASHDUi"<<endl;
+      current = next_current_c; // se encontrou ele é o corrente
+      current_sample_values = next_current_h;
+    }   
+  }
 }
 } // namespace planopt_heuristics
