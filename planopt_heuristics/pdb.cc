@@ -42,8 +42,42 @@ PatternDatabase::PatternDatabase(const TNFTask &task, const Pattern &pattern)
       the task is in TNF.
     */
     queue.push({0, projection.rank_state(projected_task.goal_state)});
+    
+    // exercício (b)
 
-    // TODO: add your code for exercise (b) here.
+    while(!queue.empty()){
+      int atual = queue.top().second;
+      int custo_atual = queue.top().first;
+      queue.pop();
+      auto state_atual = projection.unrank_state(atual);
+        
+      for(const auto o : projected_task.operators){
+        // pra cada operador
+        bool applicable = true;
+        for(const auto e : o.entries){
+          if(state_atual[e.variable_id] != e.effect_value) // se caiu aqui não pode aplicar
+          {
+            applicable = false;
+            break;
+          }
+        }
+        if(applicable) // é aplicavel
+        {
+          int custo = custo_atual + o.cost; // o custo é o atual + o desse operador
+          TNFState novo_estado = state_atual; // crio um novo estado(pra por na fila de novo)
+          for(const auto e : o.entries){
+            novo_estado[e.variable_id] = e.precondition_value; // aplico o operador (as pré condições)
+          } 
+          int ranked_novo_estado = projection.rank_state(novo_estado); 
+          if( custo < distances[ranked_novo_estado]){
+            distances[ranked_novo_estado]=custo;
+            queue.push({custo, ranked_novo_estado});
+          }
+        }
+      }
+    }
+
+    
 }
 
 int PatternDatabase::lookup_distance(const TNFState &original_state) const {
