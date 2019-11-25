@@ -29,33 +29,6 @@ vector<vector<int>> build_compatibility_graph(const vector<Pattern> &patterns, c
     vector<vector<int>> graph(patterns.size());
 
     // TODO: add your code for exercise (d) here.
-    vector<int> aux;
-    int found;
-    for(unsigned int i = 0; i < patterns.size(); i++){
-        aux.clear();
-        for(unsigned int j = 0; j < patterns.size(); j++){
-            found = 0;
-            for( TNFOperator op : task.operators){
-                //searches for a common operator
-                for(TNFOperatorEntry entry: op.entries){
-                    if(find(patterns[i].begin(), patterns[i].end(), entry.variable_id) != patterns[i].end()){
-                        if(find(patterns[j].begin(), patterns[j].end(), entry.variable_id) != patterns[j].end()){
-                          // if the operator changes a variable in both patterns then they're not additive
-                            if(entry.precondition_value != entry.effect_value){
-                                found = 1;
-                            }
-                            
-                        }
-                    }
-                }
-            }
-            if(found==0){
-                aux.push_back(j);
-            }
-         
-        }
-        graph[i] = aux;
-    }
 
     return graph;
 }
@@ -99,18 +72,6 @@ int CanonicalPatternDatabases::compute_heuristic(const TNFState &original_state)
     int h = 0;
 
     // TODO: add your code for exercise (d) here.
-    int max = numeric_limits<int>::min(); 
-    int clique_value;
-    for(vector<int> clique : maximal_additive_sets){
-        clique_value = 0;
-        for(unsigned int i = 0; i < clique.size();i++){
-            clique_value += heuristic_values[clique[i]];
-        }
-        if(clique_value > max){
-            max = clique_value;
-        }
-    }
-    h = max;
 
     return h;
 }
