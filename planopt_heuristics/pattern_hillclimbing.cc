@@ -68,7 +68,7 @@ bool HillClimber::fits_size_bound(const std::vector<Pattern> &collection) const
     if (total > size_bound) // se passou do bound retorna falso
       return false;
   }
-    cout<<"FIIIIIIIIIIIIIIITS"<<endl;
+
   return true;
 }
 
@@ -89,15 +89,15 @@ vector<Pattern> HillClimber::compute_initial_collection()
 
   vector<Pattern> collection;
   // exercício (f)
-  for (const auto v : task.goal_state)
+  for (unsigned int v = 0; v < task.variable_domains.size(); v++)
   { // pra cada variável citada no goal eu ponho na coleção
+    // for(int i=1; i<=v; i++){
     Pattern p;
     p.push_back(v);
     collection.push_back(p);
+
+    // }
   }
-  cout<<task.goal_state<<endl;
-  cout<<collection<<endl;
-  cout<<"COMPUTEINITIAALLLLLL"<<endl;
 
   return collection;
 }
@@ -116,33 +116,34 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
   vector<vector<Pattern>> neighbors;
 
   // exercício (f)
-
   // pra cada P na coleção C:
-  for(const auto p: collection){
-    // computa o conjunto de variaveis casualmente relevantes pra qualquer variavel no patter n
+  for (const auto p : collection)
+  { // for each pattern P in collection C
     set<int> causally_relevant;
-    for(const auto v:p){ // causally_relevant tem todas variaveis q sao casualmente relevantes pra qualquer variavel no pattern
-      for( auto x : causally_relevant_variables[v] ) {
+    for (const auto v : p)
+    { // set of variables that are causally relevant for any V in P
+      for (auto x : causally_relevant_variables[v])
+      {
         causally_relevant.insert(x);
       }
     }
-
-    for(const auto v : p){ // tira do set todas as variáveis que já ocorrem em p
-      if(causally_relevant.find(v) != causally_relevant.end()){
+    for (const auto v : p)
+    { // remove all variables from this set that already occur in P
+      if (causally_relevant.find(v) != causally_relevant.end())
+      {
         causally_relevant.erase(v);
       }
     }
     // pra cada variavel v no conjunto resultante
-    for(const auto v: causally_relevant){
-      vector<Pattern> clinha = collection;
-      clinha.push_back(p);
-      Pattern conj_v;
-      conj_v.push_back(v);
-      clinha.push_back(conj_v);
+    for (const auto v : causally_relevant)
+    {                                      // for each variable V in the resulting set:
+      vector<Pattern> clinha = collection; // add the collection C' := C
+      auto pl = p;
+      pl.push_back(v);
+      clinha.push_back(pl); // u {P u {V}}
       neighbors.push_back(clinha);
     }
   }
-  cout<<"NEIGHBOOOOOOOORSSS"<<endl;
   return neighbors;
 }
 
@@ -180,34 +181,31 @@ vector<Pattern> HillClimber::run()
 
   // exercício (f)
   vector<Pattern> current = current_collection;
-  while(true){
-    auto neighbors = compute_neighbors(current);
-    int next_current = -1;
+  while (true)
+  {
+    vector<vector<Pattern>> neighbours = compute_neighbors(current);
+    int improvement = -1;
     
-    vector<Pattern> next_current_c; // o vizinho com maior improvment
-    vector<int> next_current_h; // o valor da heuristica pro vizinho
-    
-    for(const auto n : neighbors){ // pra cada vizinho
-      vector<int> neighbor_h = compute_sample_heuristics(n); // calcula a heuristica dele 
-      int imp = 0;  // improvement é zero no inicio
-      for(unsigned int i=0; i<neighbor_h.size(); i++){
-        if(neighbor_h[i] > current_sample_values[i]){
-          imp ++;
-        } // conta em quantos estados melhorou
+    for (const auto n : neighbours)
+    {
+      // acha o vizinho com máximo
+      vector<int> n_sample_values = compute_sample_heuristics(n);
+      int num_maiores = 0;
+      for (unsigned int i = 0; i < n_sample_values.size(); i++)
+      {
+        if (n_sample_values[i] > current_sample_values[i])
+          num_maiores += 1;
       }
-      if(imp > next_current){ // se melhorou mais que o mais alto encontrado (começa em -1)
-        next_current_c = n; // é o proximo corrente
-        next_current_h = neighbor_h; // salva a heuristica pra ser o sample
-        next_current = imp; // atualiza o maior vizinho
+      if(num_maiores > improvement){
+        improvement = num_maiores;
+        current = n;
+        current_sample_values = n_sample_values;
+        cout<<"A"<< neighbours.size() <<endl;
       }
     }
-    if(next_current == -1){ // se não encontrou um vizinho melhor o melhor é o atual
+    if(improvement == -1){
       return current;
-    }else{
-      cout<<"AAIUDHIUASHDUi"<<endl;
-      current = next_current_c; // se encontrou ele é o corrente
-      current_sample_values = next_current_h;
-    }   
+    }
   }
 }
 } // namespace planopt_heuristics
