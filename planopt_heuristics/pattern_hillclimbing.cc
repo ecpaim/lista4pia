@@ -69,7 +69,7 @@ bool HillClimber::fits_size_bound(const std::vector<Pattern> &collection) const
       return false;
   }
 
-  return true;
+  return total <= size_bound;
 }
 
 HillClimber::HillClimber(const TNFTask &task, int size_bound, vector<TNFState> &&samples)
@@ -178,19 +178,23 @@ vector<Pattern> HillClimber::run()
       heuristic value. Remember to update current_sample_values when you
       modify current_collection.
     */
-
+   int improvement;
+    int num_maiores;
   // exercício (f)
   vector<Pattern> current = current_collection;
+  vector<Pattern> next_current;
+  vector<int> next_current_sample_values;
   while (true)
   {
     vector<vector<Pattern>> neighbours = compute_neighbors(current);
-    int improvement = -1;
+    improvement = 0;
     
     for (const auto n : neighbours)
     {
       // acha o vizinho com máximo
       vector<int> n_sample_values = compute_sample_heuristics(n);
-      int num_maiores = 0;
+      
+      num_maiores = 0;
       for (unsigned int i = 0; i < n_sample_values.size(); i++)
       {
         if (n_sample_values[i] > current_sample_values[i])
@@ -198,14 +202,18 @@ vector<Pattern> HillClimber::run()
       }
       if(num_maiores > improvement){
         improvement = num_maiores;
-        current = n;
-        current_sample_values = n_sample_values;
-        cout<<"A"<< neighbours.size() <<endl;
+        next_current = n;
+        next_current_sample_values = n_sample_values;
+        cout<<"Improvement maior!"<< improvement <<endl;
       }
     }
-    if(improvement == -1){
+    
+    if(improvement == 0){
       return current;
     }
+    current = next_current;
+    current_sample_values = next_current_sample_values;
+
   }
 }
 } // namespace planopt_heuristics
