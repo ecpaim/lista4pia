@@ -61,10 +61,12 @@ bool HillClimber::fits_size_bound(const std::vector<Pattern> &collection) const
   { // pra cada pattern na coleção
     int val = 1;
     for (const auto e : p)
-    {                                  // pra cada pattern dentro da coleção
+    {
+      // pra cada pattern dentro da coleção
       val *= task.variable_domains[e]; // multiplica pelo dominio da variável no pattern
     }
-    total += val;           // soma no total do conjunto
+    total += val;
+    // soma no total do conjunto
     if (total > size_bound) // se passou do bound retorna falso
       return false;
   }
@@ -89,6 +91,7 @@ vector<Pattern> HillClimber::compute_initial_collection()
 
   vector<Pattern> collection;
   // exercício (f)
+  assert(task.variable_domains.size() == task.goal_state.size());
   for (unsigned int v = 0; v < task.variable_domains.size(); v++)
   { // pra cada variável citada no goal eu ponho na coleção
     // for(int i=1; i<=v; i++){
@@ -114,7 +117,6 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
 
     */
   vector<vector<Pattern>> neighbors;
-
   // exercício (f)
   // pra cada P na coleção C:
   for (const auto p : collection)
@@ -124,16 +126,11 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
     { // set of variables that are causally relevant for any V in P
       for (auto x : causally_relevant_variables[v])
       {
-        causally_relevant.insert(x);
+        if (find(p.begin(), p.end(), x) == p.end()) // nao insere se já ta em p
+          causally_relevant.insert(x);
       }
     }
-    for (const auto v : p)
-    { // remove all variables from this set that already occur in P
-      if (causally_relevant.find(v) != causally_relevant.end())
-      {
-        causally_relevant.erase(v);
-      }
-    }
+
     // pra cada variavel v no conjunto resultante
     for (const auto v : causally_relevant)
     {                                      // for each variable V in the resulting set:
@@ -141,7 +138,8 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
       auto pl = p;
       pl.push_back(v);
       clinha.push_back(pl); // u {P u {V}}
-      neighbors.push_back(clinha);
+      if (fits_size_bound(clinha))
+        neighbors.push_back(clinha);
     }
   }
   return neighbors;
@@ -178,8 +176,8 @@ vector<Pattern> HillClimber::run()
       heuristic value. Remember to update current_sample_values when you
       modify current_collection.
     */
-   int improvement;
-    int num_maiores;
+  int improvement;
+  int num_maiores;
   // exercício (f)
   vector<Pattern> current = current_collection;
   vector<Pattern> next_current;
@@ -188,32 +186,32 @@ vector<Pattern> HillClimber::run()
   {
     vector<vector<Pattern>> neighbours = compute_neighbors(current);
     improvement = 0;
-    
+
     for (const auto n : neighbours)
     {
       // acha o vizinho com máximo
       vector<int> n_sample_values = compute_sample_heuristics(n);
-      
+
       num_maiores = 0;
       for (unsigned int i = 0; i < n_sample_values.size(); i++)
       {
         if (n_sample_values[i] > current_sample_values[i])
           num_maiores += 1;
       }
-      if(num_maiores > improvement){
+      if (num_maiores > improvement)
+      {
         improvement = num_maiores;
         next_current = n;
         next_current_sample_values = n_sample_values;
-        cout<<"Improvement maior!"<< improvement <<endl;
       }
     }
-    
-    if(improvement == 0){
+
+    if (improvement == 0)
+    {
       return current;
     }
     current = next_current;
     current_sample_values = next_current_sample_values;
-
   }
 }
 } // namespace planopt_heuristics
