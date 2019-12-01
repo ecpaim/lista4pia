@@ -139,7 +139,7 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
       pl.push_back(v);
 
 	
-	
+	/*
       // P' not in C
       sort(pl.begin(),pl.end());
       bool redundante = false;
@@ -158,11 +158,11 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
             neighbors.push_back(clinha);
 
       }
-	
+	*/
 
-     // clinha.push_back(pl); // u {P u {V}}
-     // if (fits_size_bound(clinha))
-     //   neighbors.push_back(clinha);
+      clinha.push_back(pl); // u {P u {V}}
+      if (fits_size_bound(clinha))
+        neighbors.push_back(clinha);
     }
   }
   return neighbors;
