@@ -91,7 +91,6 @@ vector<Pattern> HillClimber::compute_initial_collection()
 
   vector<Pattern> collection;
   // exercício (f)
-  assert(task.variable_domains.size() == task.goal_state.size());
   for (unsigned int v = 0; v < task.variable_domains.size(); v++)
   { // pra cada variável citada no goal eu ponho na coleção
     // for(int i=1; i<=v; i++){
@@ -155,6 +154,7 @@ vector<vector<Pattern>> HillClimber::compute_neighbors(const vector<Pattern> &co
       if(redundante==false){
           clinha.push_back(pl); // u {P u {V}}
           if (fits_size_bound(clinha))
+            if(find(neighbors.begin(), neighbors.end(), clinha) == neighbors.end())
             neighbors.push_back(clinha);
 
       }
